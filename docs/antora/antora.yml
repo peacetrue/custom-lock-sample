@@ -1,5 +1,5 @@
-name: peacetrue-template-gradle
-title: gradle 模板项目
+name: sample-lock
+title: 手动实现锁
 version: master
 asciidoc:
   attributes:

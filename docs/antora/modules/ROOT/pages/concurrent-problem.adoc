@@ -1,0 +1,55 @@
+= 并发带来的问题
+
+并发带来了什么问题呢？请看下面的例子：
+
+有一个计数器可以循环递增数值：
+
+.Counter
+[source%nowrap,java]
+----
+@Getter
+public class Counter {
+
+    /** 数值 */
+    private int value = 0;
+
+    /** 循环递增 */
+    public void increase(int loopCount) {
+        for (int i = 0; i < loopCount; i++) {
+            value++;
+        }
+    }
+}
+----
+
+多线程并发执行，导致 `Counter.value` 小于实际值：
+
+.CounterTest
+[source%nowrap,java]
+----
+class CounterTest {
+
+    private final int threadCount = 100, loopCount = 1_000_000;
+
+    private void increase(Counter counter) throws InterruptedException {
+        List<Thread> threads = IntStream
+                .range(0, threadCount)
+                .mapToObj(i -> new Thread(() -> counter.increase(loopCount)))
+                .collect(Collectors.toList());
+        threads.forEach(Thread::start);
+        for (Thread thread : threads) thread.join();
+    }
+
+    @RepeatedTest(100)
+    void concurrentProblem() throws Exception {
+        Counter counter = new Counter();
+        increase(counter);
+        Assertions.assertTrue(
+                counter.getValue() < threadCount * loopCount,
+                "多线程并发执行，数值小于实际值"
+        );
+    }
+}
+----
+
+原因在于线程每次获取 `Counter.value` 时，不一定能获取到其他线程修改后的最新值。
