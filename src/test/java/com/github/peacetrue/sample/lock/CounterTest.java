@@ -36,4 +36,20 @@ class CounterTest {
         );
     }
 
+    private void testCustomLock(CustomLock customLock) throws Exception {
+        Counter counter = wrapLock(customLock);
+        increase(counter);
+        Assertions.assertEquals(counter.getValue(), threadCount * loopCount,
+                "加锁后多线程并发累加结果等于实际值");
+    }
+
+    private Counter wrapLock(CustomLock customLock) {
+        return new Counter() {
+            public void increase(int loopCount) {
+                customLock.lock();
+                super.increase(loopCount);
+                customLock.unlock();
+            }
+        };
+    }
 }

@@ -1,2 +1,3 @@
 * xref:index.adoc[简介]
 * xref:concurrent-problem.adoc[并发带来的问题]
+* xref:lock.adoc[解决之道-锁]

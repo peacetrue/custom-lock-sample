@@ -1,0 +1,49 @@
+= 锁
+
+如何解决 xref:concurrent-problem.adoc[] 呢？那就是锁。锁用于保证同一时刻只有一个线程能执行特定的代码块。
+
+== 加锁和解锁
+
+对于锁来说，具有两个最基础的方法：
+
+. lock：加锁
+. unlock：解锁
+
+接口如下：
+
+.CustomLock
+[source%nowrap,java]
+----
+public interface CustomLock {
+    void lock();
+    void unlock();
+}
+----
+
+测试代码如下（尚缺一个锁实现）：
+
+.CounterTest
+[source%nowrap,java]
+----
+class CounterTest {
+    private void testCustomLock(CustomLock customLock) throws Exception {
+        Counter counter = wrapLock(customLock);
+        increase(counter);
+        Assertions.assertEquals(counter.getValue(), threadCount * loopCount,
+                "加锁后多线程并发累加结果等于实际值");
+    }
+
+    private Counter wrapLock(CustomLock customLock) {
+        return new Counter() {
+            public void increase(int loopCount) {
+                customLock.lock();
+                super.increase(loopCount);
+                customLock.unlock();
+            }
+        };
+    }
+}
+----
+
+
+
