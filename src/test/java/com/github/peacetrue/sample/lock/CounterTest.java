@@ -2,6 +2,7 @@ package com.github.peacetrue.sample.lock;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ class CounterTest {
 
     @RepeatedTest(100)
     void concurrentProblem() throws Exception {
-        Counter counter = new Counter();
+        Counter counter = new CounterImpl();
         increase(counter);
         Assertions.assertTrue(
                 counter.getValue() < threadCount * loopCount,
@@ -36,20 +37,43 @@ class CounterTest {
         );
     }
 
-    private void testCustomLock(CustomLock customLock) throws Exception {
-        Counter counter = wrapLock(customLock);
-        increase(counter);
+    private void testCustomLock(Counter counter, CustomLock customLock) throws Exception {
+        Counter lockCounter = wrapLock(counter, customLock);
+        increase(lockCounter);
         Assertions.assertEquals(counter.getValue(), threadCount * loopCount,
                 "加锁后多线程并发累加结果等于实际值");
     }
 
-    private Counter wrapLock(CustomLock customLock) {
-        return new Counter() {
+    private Counter wrapLock(Counter counter, CustomLock customLock) {
+        return new CounterAdapter(counter) {
             public void increase(int loopCount) {
                 customLock.lock();
                 super.increase(loopCount);
                 customLock.unlock();
             }
         };
+    }
+
+    @RepeatedTest(100)
+    void atomicLock() throws Exception {
+        testCustomLock(new CounterImpl(), new AtomicLock());
+    }
+
+    @Test
+    void atomicLockOfCpu() throws Exception {
+        //测试 cpu 利用率高
+        Counter counter = new CounterAdapter(new CounterImpl()) {
+            @Override
+            public void increase(int loopCount) {
+                super.increase(loopCount);
+                //等待 1 秒中，让其他线程疯狂抢锁
+                try {
+                    Thread.sleep(1_000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        testCustomLock(counter, new AtomicLock());
     }
 }
