@@ -14,9 +14,23 @@ import java.util.stream.IntStream;
  * @author : xiayx
  * @since : 2021-05-31 21:43
  **/
+//tag::class-start[]
 class CounterTest {
 
+    //end::class-start[]
+
+    //tag::concurrentProblem[]
     private final int threadCount = 100, loopCount = 1_000_000;
+
+    @RepeatedTest(100)
+    void concurrentProblem() throws Exception {
+        Counter counter = new CounterImpl();
+        increase(counter);
+        Assertions.assertTrue(
+                counter.getValue() < threadCount * loopCount,
+                "多线程并发执行，计数值小于实际值"
+        );
+    }
 
     private void increase(Counter counter) throws InterruptedException {
         List<Thread> threads = IntStream
@@ -26,54 +40,53 @@ class CounterTest {
         threads.forEach(Thread::start);
         for (Thread thread : threads) thread.join();
     }
+    //end::concurrentProblem[]
 
-    @RepeatedTest(100)
-    void concurrentProblem() throws Exception {
-        Counter counter = new CounterImpl();
+    //tag::testCustomLock[]
+    private void testCustomLock(CustomLock customLock) throws Exception {
+        testCustomLock(new LockCounter(new CounterImpl(), customLock));
+    }
+
+    private void testCustomLock(Counter counter) throws Exception {
         increase(counter);
-        Assertions.assertTrue(
-                counter.getValue() < threadCount * loopCount,
-                "多线程并发执行，数值小于实际值"
+        Assertions.assertEquals(
+                counter.getValue(), threadCount * loopCount,
+                "加锁后，多线程并发执行，计数值等于实际值"
         );
     }
+    //end::testCustomLock[]
 
-    private void testCustomLock(Counter counter, CustomLock customLock) throws Exception {
-        Counter lockCounter = wrapLock(counter, customLock);
-        increase(lockCounter);
-        Assertions.assertEquals(counter.getValue(), threadCount * loopCount,
-                "加锁后多线程并发累加结果等于实际值");
-    }
 
-    private Counter wrapLock(Counter counter, CustomLock customLock) {
-        return new CounterAdapter(counter) {
-            public void increase(int loopCount) {
-                customLock.lock();
-                super.increase(loopCount);
-                customLock.unlock();
-            }
-        };
-    }
-
+    //tag::atomicLock[]
     @RepeatedTest(100)
     void atomicLock() throws Exception {
-        testCustomLock(new CounterImpl(), new AtomicLock());
+        testCustomLock(new AtomicLock());
     }
+    //end::atomicLock[]
 
+    //tag::atomicLockInSlowCase[]
     @Test
-    void atomicLockOfCpu() throws Exception {
-        //测试 cpu 利用率高
-        Counter counter = new CounterAdapter(new CounterImpl()) {
-            @Override
-            public void increase(int loopCount) {
-                super.increase(loopCount);
-                //等待 1 秒中，让其他线程疯狂抢锁
-                try {
-                    Thread.sleep(1_000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        testCustomLock(counter, new AtomicLock());
+    void atomicLockInSlowCase() throws Exception {
+        //慢场景下执行，CPU 利用率高
+        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl()), new AtomicLock()));
     }
+    //end::atomicLockInSlowCase[]
+
+    //tag::parkLock[]
+    @RepeatedTest(100)
+    void parkLock() throws Exception {
+        testCustomLock(new ParkLock());
+    }
+    //end::parkLock[]
+
+    //tag::parkLockInSlowCase[]
+    @Test
+    void parkLockInSlowCase() throws Exception {
+        //慢场景下执行
+        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl()), new ParkLock()));
+    }
+    //end::parkLockInSlowCase[]
+
+//tag::class-end[]
 }
+//end::class-end[]

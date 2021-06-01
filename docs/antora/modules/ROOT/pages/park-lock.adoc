@@ -1,0 +1,23 @@
+= 挂起锁
+
+由于原子性锁存在 CPU 利用率过高的问题，需要通过挂起线程实现阻塞，以降低 CPU 利用率。
+
+实现代码如下：
+
+.ParkLock
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLock.java[tag=class]
+----
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLock;parkLockInSlowCase;class-end;]
+----
+
+`ParkLock` 解决了并发带来的问题，并且在慢速场景下也不会导致 CPU 利用率过高。
+
+

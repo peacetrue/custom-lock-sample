@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author : xiayx
  * @since : 2021-05-31 20:20
  **/
+//tag::class[]
 public class AtomicLock implements CustomLock {
 
     private final AtomicBoolean locked = new AtomicBoolean(false);
@@ -36,3 +37,4 @@ public class AtomicLock implements CustomLock {
         }
     }
 }
+//end::class[]
