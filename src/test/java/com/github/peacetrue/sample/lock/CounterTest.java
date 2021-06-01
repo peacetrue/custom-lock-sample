@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * 并发带来的问题
+ * 计数器测试
  *
  * @author : xiayx
  * @since : 2021-05-31 21:43
@@ -86,6 +86,31 @@ class CounterTest {
         testCustomLock(new LockCounter(new SlowCounter(new CounterImpl()), new ParkLock()));
     }
     //end::parkLockInSlowCase[]
+
+    //tag::parkLockInReenterCase[]
+    @Test
+    void parkLockInReenterCase() throws Exception {
+        ParkLock parkLock = new ParkLock();
+        //嵌套加锁形成重入锁
+        LockCounter counter = new LockCounter(new LockCounter(new CounterImpl(), parkLock), parkLock);
+        //第 1 重加锁获得锁，第 2 重加锁进入等待队列，形成死锁
+        new Thread(() -> counter.increase(loopCount), "ReenterLockTestThread").start();
+        Thread.sleep(1_000);
+        Assertions.assertTrue(
+                parkLock.getWaiters().contains(parkLock.getLockOwner()),
+                "锁的拥有线程同时进入到了等待队列形成死锁"
+        );
+    }
+    //end::parkLockInReenterCase[]
+
+    //tag::reenterLock[]
+    @RepeatedTest(100)
+    void reenterLock() throws Exception {
+        ReenterLock reenterLock = new ReenterLock();
+        LockCounter counter = new LockCounter(new LockCounter(new CounterImpl(), reenterLock), reenterLock);
+        testCustomLock(counter);
+    }
+    //end::reenterLock[]
 
 //tag::class-end[]
 }

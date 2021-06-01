@@ -1,0 +1,29 @@
+= 可重入锁
+
+xref:park-lock.adoc[] 解决了并发带来的问题，但还存在一些缺陷，比如说：不可重入。
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockInReenterCase;class-end;]
+----
+
+为解决可重入问题，引入 `ReenterLock`：
+
+实现代码如下：
+
+.ReenterLock
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/ReenterLock.java[tag=class]
+----
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;reenterLock;class-end;]
+----
