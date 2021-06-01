@@ -2,12 +2,15 @@ package com.github.peacetrue.sample.lock;
 
 import lombok.Getter;
 
+import java.util.stream.IntStream;
+
 /**
  * 计数器
  *
  * @author : xiayx
  * @since : 2021-05-31 21:55
  **/
+//tag::class[]
 @Getter
 public class CounterImpl implements Counter {
 
@@ -16,8 +19,8 @@ public class CounterImpl implements Counter {
 
     /** 循环递增 */
     public void increase(int loopCount) {
-        for (int i = 0; i < loopCount; i++) {
-            value++;
-        }
+        IntStream.range(0, loopCount)
+                .forEach(ignored -> value++);
     }
 }
+//end::class[]

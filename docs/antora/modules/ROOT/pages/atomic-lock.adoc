@@ -1,38 +1,13 @@
 = 原子性锁
 
-原子性锁通过 `CAS` 保证线程安全，循环抢锁实现阻塞等待以及锁释放后立即抢锁。
+原子性锁通过 `CAS` 保证线程安全，循环抢锁实现阻塞等待以及锁释放后抢锁。
 
 实现代码如下：
 
 .AtomicLock
 [source%nowrap,java]
 ----
-public class AtomicLock implements CustomLock {
-
-    private final AtomicBoolean locked = new AtomicBoolean(false);
-    private Thread lockOwner;
-
-    @Override
-    public void lock() {
-        //如果能将 locked 从 false 设置为 true，则表示获得锁；
-        //否则不停地尝试获取锁
-        while (!locked.compareAndSet(false, true)) {
-        }
-        //获取锁成功，锁的所有者设置为自己
-        lockOwner = Thread.currentThread();
-    }
-
-    @Override
-    public void unlock() {
-        if (lockOwner == Thread.currentThread()) {
-            locked.set(false);
-        } else {
-            throw new IllegalStateException(String.format(
-                    "线程[%s]尚未获得锁", Thread.currentThread().getName()
-            ));
-        }
-    }
-}
+include::{sourcedir}/com/github/peacetrue/sample/lock/AtomicLock.java[tag=class]
 ----
 
 测试代码如下：
@@ -40,44 +15,33 @@ public class AtomicLock implements CustomLock {
 .CounterTest
 [source%nowrap,java]
 ----
-class CounterTest {
-    @RepeatedTest(100)
-    void atomicLock() throws Exception {
-        testCustomLock(new CounterImpl(), new AtomicLock());
-    }
-}
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;testCustomLock;class-end;]
 ----
 
-`AtomicLock` 确确实实解决了并发带来的问题，但也存在一些问题。
+测试结果如下：
 
-`Counter.increase` 执行时间长，导致 CPU 利用率过高：
+image::image-2021-06-04-06-05-22-736.png[]
+
+== CPU 利用率高
+
+`AtomicLock` 解决了并发带来的问题，但存在 CPU 利用率高问题。
+
+测试代码如下：
 
 .CounterTest
 [source%nowrap,java]
 ----
-class CounterTest {
-    @Test
-    void atomicLockOfCpu() throws Exception {
-        //测试 cpu 利用率高
-        Counter counter = new CounterAdapter(new CounterImpl()) {
-            @Override
-            public void increase(int loopCount) {
-                super.increase(loopCount);
-                //等待 1 秒中，让其他线程疯狂抢锁
-                try {
-                    Thread.sleep(1_000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        testCustomLock(counter, new AtomicLock());
-    }
-}
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;atomicLockInSlowCase;class-end;]
 ----
 
-16 个核心利用率全部 100%：
+.SlowCounter
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/SlowCounter.java[tag=class]
+----
+
+测试中发现：16 核心利用率全部达到 100%：
 
 image::image-2021-06-01-05-50-11-668.png[]
 
-
+`Counter.increase` 执行时间长，导致 CPU 利用率过高，不适合耗时较长的场景，一般用于纳秒级别的内存操作。

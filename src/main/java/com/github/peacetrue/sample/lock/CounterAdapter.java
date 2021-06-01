@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
  * @author : xiayx
  * @since : 2021-06-01 05:36
  **/
+//tag::class[]
 @AllArgsConstructor
 public class CounterAdapter implements Counter {
 
@@ -21,3 +22,4 @@ public class CounterAdapter implements Counter {
         return counter.getValue();
     }
 }
+//end::class[]

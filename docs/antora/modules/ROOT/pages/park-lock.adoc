@@ -1,0 +1,113 @@
+= 挂起锁
+
+由于原子性锁存在 CPU 利用率过高的问题，需要通过挂起线程实现阻塞，以降低 CPU 利用率。
+
+实现代码如下：
+
+.ParkLock
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLock.java[tag=class]
+----
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLock;class-end;]
+----
+
+测试结果如下：
+
+image::image-2021-06-04-05-52-06-188.png[]
+
+*Thread-6* 唤醒等锁线程时，*Thread-7* 尚未进入等锁队列。*Thread-7* 进入等锁队列后，没有线程唤醒它，导致执行超时。
+
+问题的原因在于加锁和解锁之间不是互斥的。
+
+== 加锁解锁互斥
+
+加锁的时候不允许解锁，解锁的时候不允许加锁。
+
+实现代码如下：
+
+.ParkLockMutex
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockMutex.java[tag=class]
+----
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockMutex;class-end;]
+----
+
+测试结果如下：
+
+image::image-2021-06-04-06-45-17-021.png[]
+
+日志中输出 *线程[Thread-131]被唤醒*，但实际上没有任何线程唤醒过 *Thread-131*，不明白具体原因，好像是 `LockSupport.park()` 没有阻塞住。
+
+查看 `LockSupport.park()` 的介绍：
+
+image::image-2021-06-04-06-51-49-534.png[]
+
+确实有可能 *无缘无故的返回*，有点被坑的感觉。
+
+== 可能阻塞不住
+
+阻塞不住会再次抢锁，因为跳过了唤醒逻辑，线程没有从等锁队列中出栈，再次入栈会重复。
+
+实现代码如下：
+
+.ParkLockMutexBlockFailed
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockMutexBlockFailed.java[tag=class]
+----
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockMutexBlockFailed;class-end;]
+----
+
+测试结果如下：
+
+image::image-2021-06-04-22-57-53-466.png[]
+
+
+////
+== 加锁之间不互斥
+
+加锁解锁之间互斥，但加锁之间不互斥，有点类似读写锁的意思。
+
+实现代码如下：
+
+.parkLockNotMutex
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockNotMutex.java[tag=class]
+----
+
+测试代码如下：
+
+.CounterTest
+[source%nowrap,java]
+----
+include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockNotMutex;class-end;]
+----
+
+测试结果如下：
+
+image::image-2021-06-04-23-01-14-049.png[]
+
+10000 个测试在 58 秒内完成。
+////
+

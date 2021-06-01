@@ -4,6 +4,8 @@ version: master
 asciidoc:
   attributes:
     numbered: ''
+    sourcedir: ../../../../../src/main/java
+    testsourcedir: ../../../../../src/test/java
 start_page: ROOT:index.adoc
 nav:
   - modules/ROOT/nav.adoc

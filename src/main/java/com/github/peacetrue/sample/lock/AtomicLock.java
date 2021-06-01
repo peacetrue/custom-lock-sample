@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author : xiayx
  * @since : 2021-05-31 20:20
  **/
+//tag::class[]
 public class AtomicLock implements CustomLock {
 
     private final AtomicBoolean locked = new AtomicBoolean(false);
@@ -21,13 +22,14 @@ public class AtomicLock implements CustomLock {
         //否则不停地尝试获取锁
         while (!locked.compareAndSet(false, true)) {
         }
-        //获取锁成功，锁的所有者设置为自己
+        //成功获取锁，设置锁的所有者为自己
         lockOwner = Thread.currentThread();
     }
 
     @Override
     public void unlock() {
         if (lockOwner == Thread.currentThread()) {
+            lockOwner = null;
             locked.set(false);
         } else {
             throw new IllegalStateException(String.format(
@@ -36,3 +38,4 @@ public class AtomicLock implements CustomLock {
         }
     }
 }
+//end::class[]
