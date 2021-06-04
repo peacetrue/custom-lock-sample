@@ -3,3 +3,4 @@
 * xref:lock.adoc[解决之道-锁]
 * xref:atomic-lock.adoc[原子性锁]
 * xref:park-lock.adoc[挂起锁]
+* xref:reenter-lock.adoc[重入锁]

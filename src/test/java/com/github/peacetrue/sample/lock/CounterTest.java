@@ -143,6 +143,34 @@ class CounterTest {
     }
     //end::parkLockNotMutexInSlowCase[]
 
+    //tag::parkLockInReenterCase[]
+    @RepeatedTest(1)
+    void parkLockInReenterCase() throws Exception {
+        //挂起锁在重入场景下的测试
+        ParkLock parkLock = new ParkLockMutexBlockFailed();
+        //嵌套加锁形成锁重入
+        LockCounter counter = new LockCounter(new LockCounter(new CounterImpl(), parkLock), parkLock);
+        //第 1 重加锁获得锁，第 2 重加锁进入等锁队列，形成死锁
+        new Thread(() -> counter.increase(loopCount)).start();
+        //阻塞到线程已进入等锁队列
+        while (parkLock.getWaiters().isEmpty()) {
+        }
+        Assertions.assertTrue(
+                parkLock.getWaiters().contains(parkLock.getLockOwner()),
+                "锁的拥有线程同时进入到了等锁队列形成死锁"
+        );
+    }
+    //end::parkLockInReenterCase[]
+
+    //tag::reenterLock[]
+    @RepeatedTest(REPEATED_COUNT)
+    void reenterLock() throws Exception {
+        ReenterLock reenterLock = new ReenterLock();
+        testCustomLock(new LockCounter(new LockCounter(new CounterImpl(), reenterLock), reenterLock));
+    }
+    //end::reenterLock[]
+
+
 //tag::class-end[]
 }
 //end::class-end[]
