@@ -18,9 +18,15 @@ include::{sourcedir}/com/github/peacetrue/sample/lock/AtomicLock.java[tag=class]
 include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;testCustomLock;class-end;]
 ----
 
-`AtomicLock` 解决了并发带来的问题，但也存在一些问题。
+测试结果如下：
 
-`Counter.increase` 执行时间长，导致 CPU 利用率过高：
+image::image-2021-06-04-06-05-22-736.png[]
+
+== CPU 利用率高
+
+`AtomicLock` 解决了并发带来的问题，但存在 CPU 利用率高问题。
+
+测试代码如下：
 
 .CounterTest
 [source%nowrap,java]
@@ -28,8 +34,14 @@ include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=
 include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;atomicLockInSlowCase;class-end;]
 ----
 
-16 个核心利用率全部达到 100%：
+.SlowCounter
+[source%nowrap,java]
+----
+include::{sourcedir}/com/github/peacetrue/sample/lock/SlowCounter.java[tag=class]
+----
+
+测试中发现：16 核心利用率全部达到 100%：
 
 image::image-2021-06-01-05-50-11-668.png[]
 
-
+`Counter.increase` 执行时间长，导致 CPU 利用率过高，不适合耗时较长的场景，一般用于纳秒级别的内存操作。

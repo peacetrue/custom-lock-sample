@@ -1,6 +1,8 @@
 package com.github.peacetrue.sample.lock;
 
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -8,55 +10,104 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * 设置一个是否加锁的标志位，标志位为 false 时，表示未加锁；
- * 未加锁时可以加锁，已加锁则进入等待队列，等待锁持有线程唤醒后继续抢锁。
+ * 未加锁时可以加锁，已加锁则进入等锁队列，等待锁持有线程唤醒后继续抢锁。
  *
  * @author : xiayx
  * @since : 2021-05-31 20:20
  **/
 //tag::class[]
+@Slf4j
 @Getter
+@Setter
 public class ParkLock implements CustomLock {
 
     /** 锁标志位 */
     private final AtomicBoolean locked = new AtomicBoolean(false);
-    /** 等待线程队列（必须是基于 CAS 实现的线程安全队列，既然是自己实现锁，就不能使用 JDK 已经提供的锁） */
+    /** 等锁队列（必须是基于 CAS 实现的线程安全队列，既然是自己实现锁，就不能使用 JDK 已经提供的锁） */
     private final ConcurrentLinkedQueue<Thread> waiters = new ConcurrentLinkedQueue<>();
     /** 锁的拥有线程 */
     private Thread lockOwner;
 
     @Override
     public void lock() {
-        //如果能将 locked 从 false 设置为 true，则表示获得锁；
+        Thread currentThread = Thread.currentThread();
+        String currentThreadName = currentThread.getName();
+        log.info("线程[{}]抢锁", currentThreadName);
+        //如果能将 locked 从 false 设置为 true，则表示获得锁
         if (locked.compareAndSet(false, true)) {
-            lockOwner = Thread.currentThread();
+            log.debug("线程[{}]取得锁", currentThreadName);
+            lockOwner = currentThread;
+            handleWhenLockSucceed();
+            handleWhenLockCompleted();
         } else {
-            //未获得锁，放入等待队列，并进行等待
-            waiters.offer(Thread.currentThread());
+            if (intoWaiters()) {
+                log.debug("线程[{}]进入等锁队列", currentThreadName);
+                waiters.offer(currentThread);
+            }
+            handleWhenLockFailed();
+            handleWhenLockCompleted();
             LockSupport.park(this);
-            //锁释放后，再次抢锁
-            lock();
+            log.debug("线程[{}]被唤醒", currentThreadName);
+            lock();//锁释放后，再次抢锁
         }
+    }
+
+    /** 当抢锁成功后执行 */
+    protected void handleWhenLockSucceed() {
+    }
+
+    /** 当抢锁失败后执行 */
+    protected void handleWhenLockFailed() {
+    }
+
+    /** 当抢锁完成后执行 */
+    protected void handleWhenLockCompleted() {
+    }
+
+    /** 是否进入等锁队列 */
+    protected boolean intoWaiters() {
+        return true;
     }
 
     @Override
     public void unlock() {
+        String currentThreadName = Thread.currentThread().getName();
+        log.info("线程[{}]释放锁", currentThreadName);
         if (isOwnLock()) {
-            release();
+            doUnlock();
         } else {
             throw new IllegalStateException(String.format(
-                    "线程[%s]尚未获得锁", Thread.currentThread().getName()
+                    "线程[%s]尚未获得锁", currentThreadName
             ));
         }
     }
 
+    /** 当前线程是否拥有锁 */
     protected boolean isOwnLock() {
         return lockOwner == Thread.currentThread();
     }
 
-    protected void release() {
+    /** 执行解锁 */
+    protected void doUnlock() {
         locked.set(false);
+        //期间可能插入新来的线程抢到锁，非公平锁
+        unpackHead();
+        handleWhenUnlockCompleted();
+    }
+
+    /** 唤醒头部线程 */
+    protected void unpackHead() {
         Thread head = waiters.poll();
-        if (head != null) LockSupport.unpark(head);
+        if (head == null) {
+            log.debug("尚无等锁线程");
+        } else {
+            log.debug("唤醒等锁线程[{}]", head.getName());
+            LockSupport.unpark(head);
+        }
+    }
+
+    /** 当解锁完成后执行 */
+    protected void handleWhenUnlockCompleted() {
     }
 
 }

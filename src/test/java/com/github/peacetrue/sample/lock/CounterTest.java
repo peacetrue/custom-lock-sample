@@ -3,8 +3,10 @@ package com.github.peacetrue.sample.lock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -15,30 +17,41 @@ import java.util.stream.IntStream;
  * @since : 2021-05-31 21:43
  **/
 //tag::class-start[]
+@Timeout(1)
 class CounterTest {
 
     //end::class-start[]
 
     //tag::concurrentProblem[]
-    private final int threadCount = 100, loopCount = 1_000_000;
+    /** 重复测试数，如果 1 万次还没测出问题，就姑且认为正确吧 */
+    private static final int REPEATED_COUNT = 10_000;
+    /** 线程数 */
+    private int threadCount = 1_00;
+    /** 循环递增数 */
+    private final int loopCount = 1_000;
 
-    @RepeatedTest(100)
+    @RepeatedTest(REPEATED_COUNT)
     void concurrentProblem() throws Exception {
+        //此测试结果无法通过
         Counter counter = new CounterImpl();
-        increase(counter);
-        Assertions.assertTrue(
-                counter.getValue() < threadCount * loopCount,
-                "多线程并发执行，计数值小于实际值"
-        );
+        concurrentIncrease(counter);
+        Assertions.assertEquals(counter.getValue(), threadCount * loopCount,
+                "多线程并发执行，计数值等于实际值");
     }
 
-    private void increase(Counter counter) throws InterruptedException {
-        List<Thread> threads = IntStream
+    /** 并发递增 */
+    private void concurrentIncrease(Counter counter) throws InterruptedException {
+        List<Thread> threads = buildThreads(counter);
+        threads.forEach(Thread::start);
+        for (Thread thread : threads) thread.join();
+    }
+
+    /** 构建线程 */
+    private List<Thread> buildThreads(Counter counter) {
+        return IntStream
                 .range(0, threadCount)
                 .mapToObj(i -> new Thread(() -> counter.increase(loopCount)))
                 .collect(Collectors.toList());
-        threads.forEach(Thread::start);
-        for (Thread thread : threads) thread.join();
     }
     //end::concurrentProblem[]
 
@@ -48,7 +61,7 @@ class CounterTest {
     }
 
     private void testCustomLock(Counter counter) throws Exception {
-        increase(counter);
+        concurrentIncrease(counter);
         Assertions.assertEquals(
                 counter.getValue(), threadCount * loopCount,
                 "加锁后，多线程并发执行，计数值等于实际值"
@@ -56,9 +69,16 @@ class CounterTest {
     }
     //end::testCustomLock[]
 
+    //tag::reentrantLock[]
+    @RepeatedTest(REPEATED_COUNT)
+    void reentrantLock() throws Exception {
+        //JDK 的锁与自定义的锁，做个对比
+        testCustomLock(new LockAdapter(new ReentrantLock()));
+    }
+    //end::reentrantLock[]
 
     //tag::atomicLock[]
-    @RepeatedTest(100)
+    @RepeatedTest(REPEATED_COUNT)
     void atomicLock() throws Exception {
         testCustomLock(new AtomicLock());
     }
@@ -66,51 +86,62 @@ class CounterTest {
 
     //tag::atomicLockInSlowCase[]
     @Test
+    @Timeout(10)
     void atomicLockInSlowCase() throws Exception {
-        //慢场景下执行，CPU 利用率高
-        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl()), new AtomicLock()));
+        //此测试过程中会导致 CPU 利用率达到 100%
+        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl(), 20), new AtomicLock()));
     }
     //end::atomicLockInSlowCase[]
 
     //tag::parkLock[]
-    @RepeatedTest(100)
+    @RepeatedTest(REPEATED_COUNT)
     void parkLock() throws Exception {
+        //此测试结果无法通过，因为抢锁和解锁不互斥
         testCustomLock(new ParkLock());
     }
     //end::parkLock[]
 
-    //tag::parkLockInSlowCase[]
-    @Test
-    void parkLockInSlowCase() throws Exception {
-        //慢场景下执行
-        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl()), new ParkLock()));
+    //tag::parkLockMutex[]
+    @RepeatedTest(REPEATED_COUNT)
+    void parkLockMutex() throws Exception {
+        //此测试结果无法通过，因为 LockSupport.park() 可能阻塞不住
+        testCustomLock(new ParkLockMutex());
     }
-    //end::parkLockInSlowCase[]
+    //end::parkLockMutex[]
 
-    //tag::parkLockInReenterCase[]
-    @Test
-    void parkLockInReenterCase() throws Exception {
-        ParkLock parkLock = new ParkLock();
-        //嵌套加锁形成重入锁
-        LockCounter counter = new LockCounter(new LockCounter(new CounterImpl(), parkLock), parkLock);
-        //第 1 重加锁获得锁，第 2 重加锁进入等待队列，形成死锁
-        new Thread(() -> counter.increase(loopCount), "ReenterLockTestThread").start();
-        Thread.sleep(1_000);
-        Assertions.assertTrue(
-                parkLock.getWaiters().contains(parkLock.getLockOwner()),
-                "锁的拥有线程同时进入到了等待队列形成死锁"
-        );
+    //tag::parkLockMutexBlockFailed[]
+    @RepeatedTest(REPEATED_COUNT)
+    void parkLockMutexBlockFailed() throws Exception {
+        //此测试结果正常通过
+        testCustomLock(new ParkLockMutexBlockFailed());
     }
-    //end::parkLockInReenterCase[]
+    //end::parkLockMutexBlockFailed[]
 
-    //tag::reenterLock[]
-    @RepeatedTest(100)
-    void reenterLock() throws Exception {
-        ReenterLock reenterLock = new ReenterLock();
-        LockCounter counter = new LockCounter(new LockCounter(new CounterImpl(), reenterLock), reenterLock);
-        testCustomLock(counter);
+    //tag::parkLockMutexBlockFailedInSlowCase[]
+    @Test
+    @Timeout(100)
+    void parkLockMutexBlockFailedInSlowCase() throws Exception {
+        //此测试结果正常通过
+        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl(), 100), new ParkLockMutexBlockFailed()));
     }
-    //end::reenterLock[]
+    //end::parkLockMutexBlockFailedInSlowCase[]
+
+    //tag::parkLockNotMutex[]
+    @Timeout(1)
+    @RepeatedTest(REPEATED_COUNT)
+    void parkLockNotMutex() throws Exception {
+        //此测试结果正常通过
+        testCustomLock(new ParkLockNotMutex());
+    }
+    //end::parkLockNotMutex[]
+
+    //tag::parkLockNotMutexInSlowCase[]
+    @Timeout(100)
+    @Test
+    void parkLockNotMutexInSlowCase() throws Exception {
+        testCustomLock(new LockCounter(new SlowCounter(new CounterImpl(), 100), new ParkLockNotMutex()));
+    }
+    //end::parkLockNotMutexInSlowCase[]
 
 //tag::class-end[]
 }

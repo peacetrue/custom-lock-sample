@@ -4,6 +4,7 @@ package com.github.peacetrue.sample.lock;
  * @author : xiayx
  * @since : 2021-06-01 09:03
  **/
+//tag::class[]
 public class SlowCounter extends CounterAdapter {
 
     private final long millis;
@@ -20,11 +21,12 @@ public class SlowCounter extends CounterAdapter {
     @Override
     public void increase(int loopCount) {
         super.increase(loopCount);
-        //等待 1 秒中，让其他线程疯狂抢锁
         try {
+            //等待一段时间，让其他线程疯狂抢锁
             Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
         }
     }
 }
+//end::class[]

@@ -16,7 +16,7 @@ include::{sourcedir}/com/github/peacetrue/sample/lock/Counter.java[tag=class]
 include::{sourcedir}/com/github/peacetrue/sample/lock/CounterImpl.java[tag=class]
 ----
 
-多线程并发执行，导致 `Counter.getValue()` 小于实际值：
+测试代码如下：
 
 .CounterTest
 [source%nowrap,java]
@@ -24,4 +24,8 @@ include::{sourcedir}/com/github/peacetrue/sample/lock/CounterImpl.java[tag=class
 include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;concurrentProblem;class-end;]
 ----
 
-原因在于线程每次调用 `Counter.getValue()` 时，不一定能获取到其他线程修改后的最新值。
+测试结果如下：
+
+image::image-2021-06-04-05-57-31-120.png[]
+
+多线程并发执行，导致计数值小于实际值，原因在于线程每次获取计数值时，不一定能获取到其他线程修改后的最新值。
