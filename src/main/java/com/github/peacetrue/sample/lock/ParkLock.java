@@ -46,8 +46,10 @@ public class ParkLock implements CustomLock {
             }
             handleWhenLockFailed();
             handleWhenLockCompleted();
+            log.debug("挂起线程[{}]等锁", currentThreadName);
             LockSupport.park(this);
             log.debug("线程[{}]被唤醒", currentThreadName);
+            handleWhenUnpark();
             lock();//锁释放后，再次抢锁
         }
     }
@@ -62,6 +64,10 @@ public class ParkLock implements CustomLock {
 
     /** 当抢锁完成后执行 */
     protected void handleWhenLockCompleted() {
+    }
+
+    /** 当被唤醒后执行 */
+    protected void handleWhenUnpark() {
     }
 
     /** 是否进入等锁队列 */

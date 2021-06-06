@@ -1,5 +1,6 @@
 package com.github.peacetrue.sample.lock;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.util.stream.IntStream;
  * @since : 2021-05-31 21:43
  **/
 //tag::class-start[]
+@Slf4j
 @Timeout(1)
 class CounterTest {
 
@@ -24,7 +26,7 @@ class CounterTest {
 
     //tag::concurrentProblem[]
     /** 重复测试数，如果 1 万次还没测出问题，就姑且认为正确吧 */
-    private static final int REPEATED_COUNT = 10_000;
+    public static final int REPEATED_COUNT = 10_000;
     /** 线程数 */
     private int threadCount = 1_00;
     /** 循环递增数 */
@@ -153,8 +155,7 @@ class CounterTest {
         //第 1 重加锁获得锁，第 2 重加锁进入等锁队列，形成死锁
         new Thread(() -> counter.increase(loopCount)).start();
         //阻塞到线程已进入等锁队列
-        while (parkLock.getWaiters().isEmpty()) {
-        }
+        while (true) if (!parkLock.getWaiters().isEmpty()) break;
         Assertions.assertTrue(
                 parkLock.getWaiters().contains(parkLock.getLockOwner()),
                 "锁的拥有线程同时进入到了等锁队列形成死锁"
@@ -170,6 +171,57 @@ class CounterTest {
     }
     //end::reenterLock[]
 
+    //tag::interruptWaiter[]
+    private void interruptWaiter(ParkLock parkLock) throws Exception {
+        LockCounter lockCounter = new LockCounter(new SlowCounter(new CounterImpl(), 3_000), parkLock);
+
+        Thread thread1 = new Thread(() -> lockCounter.increase(loopCount));
+        log.info("thread1.start");
+        thread1.start();
+        //阻塞到线程取得锁
+        while (true) if (parkLock.getLockOwner() == thread1) break;
+
+        //启动一个线程，进入到等锁队列
+        Thread thread2 = new Thread(() -> lockCounter.increase(loopCount));
+        log.info("thread2.start");
+        thread2.start();
+        //thread1 需要执行 3 秒，thread2 抢不到锁，会进入等锁队列
+        while (true) {
+            if (parkLock.getWaiters().contains(thread2)) break;
+            if (parkLock.getLockOwner() == thread2) throw new IllegalStateException();
+        }
+
+        //打断等锁线程，看看会发生什么
+        log.info("thread2.interrupt");
+        thread2.interrupt();//打断之后，依然抢不到锁
+        thread1.join();
+        thread2.join();
+    }
+    //end::interruptWaiter[]
+
+    //tag::parkLockInInterruptWaiterCase[]
+    @RepeatedTest(1)
+    @Timeout(4)
+    void parkLockInInterruptWaiterCase() throws Exception {
+        interruptWaiter(new ReenterLock());
+    }
+    //end::parkLockInInterruptWaiterCase[]
+
+    //tag::parkLockClearInterrupted[]
+    @Test
+    @Timeout(7)
+    void parkLockClearInterrupted() throws Exception {
+        interruptWaiter(new ParkLockClearInterrupted());
+    }
+    //end::parkLockClearInterrupted[]
+
+    //tag::parkLockInterruptibly[]
+    @Test
+    @Timeout(7)
+    void parkLockInterruptibly() throws Exception {
+        interruptWaiter(new ParkLockInterruptibly());
+    }
+    //end::parkLockInterruptibly[]
 
 //tag::class-end[]
 }

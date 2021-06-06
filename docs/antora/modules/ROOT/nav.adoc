@@ -4,3 +4,4 @@
 * xref:atomic-lock.adoc[原子性锁]
 * xref:park-lock.adoc[挂起锁]
 * xref:reenter-lock.adoc[重入锁]
+* xref:interrupt.adoc[打断等锁线程]

@@ -12,7 +12,7 @@
 .CustomLock
 [source%nowrap,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/CustomLock.java[tag=class]
+include::{sourcedir}/com/github/peacetrue/sample/lock/CustomLock.java[tags=class-start;lock;unlock;class-end]
 ----
 
 测试代码如下（尚缺一个锁实现）：

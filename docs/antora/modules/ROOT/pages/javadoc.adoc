@@ -1,0 +1,42 @@
+= java doc
+
+== Thread
+
+=== interrupt
+
+Interrupts this thread.
+
+Unless the current thread is interrupting itself, which is always permitted, the checkAccess method of this thread is invoked, which may cause a SecurityException to be thrown.
+
+If this thread is blocked in an invocation of the wait(), wait(long), or wait(long, int) methods of the Object class, or of the join(), join(long), join(long, int), sleep(long), or sleep(long, int), methods of this class, then its interrupt status will be cleared and it will receive an InterruptedException.
+
+If this thread is blocked in an I/O operation upon an InterruptibleChannel then the channel will be closed, the thread's interrupt status will be set, and the thread will receive a java.nio.channels.ClosedByInterruptException.
+
+If this thread is blocked in a java.nio.channels.Selector then the thread's interrupt status will be set and it will return immediately from the selection operation, possibly with a non-zero value, just as if the selector's wakeup method were invoked.
+
+If none of the previous conditions hold then this thread's interrupt status will be set.
+
+Interrupting a thread that is not alive need not have any effect.
+
+'''
+
+中断此线程。
+
+除非当前线程中断本身（始终允许）否则将调用此线程的检查访问方法，这可能会导致抛出安全例外。
+
+如果此线程在调用 `java.lang.Object` 的 `wait()`、`wait(long)` 或者 `wait(long, int)` 方法, 或者 `java.lang.Thread` 的 `join()`、`join(long)`、`join(long, int)`、`sleep(long)` 或者 `sleep(long, int)` 方法时被阻塞，则其中断状态将被清除，并接收 `java.lang.InterruptedException`。
+
+如果此线程阻塞在 I/O 操作上，而且此 I/O 操作基于 `java.nio.channels.InterruptibleChannel`，则通道将被关闭，线程的中断状态将被设置，线程将接收 `java.nio.channels.ClosedByInterruptException`。
+
+如果此线程阻塞在 `java.nio.channels.Selector` 上，则将设置线程的中断状态，并且它将立即从 *多路复用通道上的操作* 返回，可能具有非零值，就好像调用了 `java.nio.channels.Selector#wakeup()` 方法一样。
+
+如果以前的条件都不成立，则将设置此线程的中断状态。
+
+中断未激活的线程不产生任何效果。
+
+'''
+
+如果抛出中断异常，则清除中断标志；否则保留中断标志，扩展程序读取中断标志后，根据需要决定是否抛出中断异常，抛出中断异常后要清除中断标志，避免重复判断。
+
+
+

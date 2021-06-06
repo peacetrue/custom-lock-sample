@@ -6,6 +6,8 @@ import org.junit.jupiter.api.RepeatedTest;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
 
+import static com.github.peacetrue.sample.lock.CounterTest.REPEATED_COUNT;
+
 /**
  * @author : xiayx
  * @since : 2021-06-01 17:27
@@ -20,9 +22,9 @@ class LockSupportTest {
         thread.join();
     }
 
-    @RepeatedTest(100)
+    @RepeatedTest(REPEATED_COUNT)
     void interruptPark() throws Exception {
-        //打断一个 park 的线程后，继续向下执行代码
+        //打断一个 park 的线程后，唤醒该线程，继续执行
         boolean[] flag = {false};
         interrupt(() -> {
             LockSupport.park(this);
@@ -31,9 +33,9 @@ class LockSupportTest {
         Assertions.assertTrue(flag[0]);
     }
 
-    @RepeatedTest(100)
+    @RepeatedTest(REPEATED_COUNT)
     void parkAfterInterrupt() throws Exception {
-        //打断一个 park 的线程后，未清除 interrupted 标记，后续 park 无效
+        //打断一个 park 的线程后，未清除 interrupted 标记，后续 park 无法阻塞
         boolean[] flag = {false};
         interrupt(() -> {
             LockSupport.park(this);
@@ -44,7 +46,7 @@ class LockSupportTest {
             long waitNanos = TimeUnit.MILLISECONDS.toNanos(10);
             LockSupport.parkNanos(this, waitNanos);//此 park 无法阻塞
             Assertions.assertTrue(System.nanoTime() - start < waitNanos,
-                    "parkNanos 没有阻塞代码，执行时间小于设置值");
+                    "parkNanos 没有阻塞代码，执行时间小于等待时间");
         });
         Assertions.assertTrue(flag[0]);
     }
@@ -62,7 +64,7 @@ class LockSupportTest {
             long waitNanos = TimeUnit.MILLISECONDS.toNanos(10);
             LockSupport.parkNanos(this, waitNanos);//此 park 重新阻塞
             Assertions.assertTrue(System.nanoTime() - start >= waitNanos,
-                    "parkNanos 阻塞代码，执行时间大于等于设置值");
+                    "parkNanos 阻塞代码，执行时间大于等于等待时间");
         });
         Assertions.assertTrue(flag[0]);
     }
