@@ -19,8 +19,8 @@ public class CounterImpl implements Counter {
 
     /** 循环递增 */
     public void increase(int loopCount) {
-        IntStream.range(0, loopCount)
-                .forEach(ignored -> value++);
+        //loopCount 用于控制方法的执行时间，sleep 只能控制到毫秒级别
+        IntStream.range(0, loopCount).forEach(ignored -> value++);
     }
 }
 //end::class[]

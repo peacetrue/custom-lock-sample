@@ -1,0 +1,176 @@
+= 源码分析
+
+== 等锁队列入栈与出栈
+
+当且仅当队首线程获得锁后，会执行出栈操作：`p == head && tryAcquire(arg)`。
+
+.加锁流程
+[source%nowrap,java]
+----
+public class ReentrantLock {
+    public void lock() {
+        sync.lock(); //<1>
+    }
+}
+
+public class NonfairSync {
+    final void lock() {//<1>
+        if (compareAndSetState(0, 1))
+            setExclusiveOwnerThread(Thread.currentThread());
+        else
+            acquire(1); //<2>
+    }
+}
+
+public class AbstractQueuedSynchronizer {
+    public final void acquire(int arg) {//<2>
+        if (!tryAcquire(arg) &&
+            acquireQueued( //<5>
+                    addWaiter(Node.EXCLUSIVE), arg)) //<3>
+            selfInterrupt();
+    }
+
+    private Node addWaiter(Node mode) {//<3>
+        Node node = new Node(Thread.currentThread(), mode);
+        // Try the fast path of enq; backup to full enq on failure
+        Node pred = tail;
+        if (pred != null) {
+            node.prev = pred;
+            if (compareAndSetTail(pred, node)) {
+                pred.next = node;
+                return node;
+            }
+        }
+        enq(node);//<4>
+        return node;
+    }
+
+    private Node enq(final Node node) {//<4>
+        for (;;) {
+            Node t = tail;
+            if (t == null) { // Must initialize
+                if (compareAndSetHead(new Node()))
+                    tail = head;
+            } else {
+                node.prev = t;
+                if (compareAndSetTail(t, node)) {
+                    t.next = node;
+                    return t;
+                }
+            }
+        }
+    }
+
+    final boolean acquireQueued(final Node node, int arg) {//<5>
+        boolean failed = true;
+        try {
+            boolean interrupted = false;
+            for (;;) {
+                final Node p = node.predecessor();
+                if (p == head && tryAcquire(arg)) {
+                    setHead(node);
+                    p.next = null; // help GC
+                    failed = false;
+                    return interrupted;
+                }
+                if (shouldParkAfterFailedAcquire(p, node) &&
+                    parkAndCheckInterrupt())
+                    interrupted = true;
+            }
+        } finally {
+            if (failed)
+                cancelAcquire(node);
+        }
+    }
+
+    private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
+        int ws = pred.waitStatus;
+        if (ws == Node.SIGNAL)
+            /*
+             * This node has already set status asking a release
+             * to signal it, so it can safely park.
+             */
+            return true;
+        if (ws > 0) {
+            /*
+             * Predecessor was cancelled. Skip over predecessors and
+             * indicate retry.
+             */
+            do {
+                node.prev = pred = pred.prev;
+            } while (pred.waitStatus > 0);
+            pred.next = node;
+        } else {
+            /*
+             * waitStatus must be 0 or PROPAGATE.  Indicate that we
+             * need a signal, but don't park yet.  Caller will need to
+             * retry to make sure it cannot acquire before parking.
+             */
+            compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+        }
+        return false;
+    }
+}
+----
+
+.解锁流程
+[source%nowrap,java]
+----
+public class ReentrantLock {
+    public void unlock() {
+        sync.release(1); //<1>
+    }
+
+    protected final boolean tryRelease(int releases) {//<2>
+        int c = getState() - releases;
+        if (Thread.currentThread() != getExclusiveOwnerThread())
+            throw new IllegalMonitorStateException();
+        boolean free = false;
+        if (c == 0) {
+            free = true;
+            setExclusiveOwnerThread(null);
+        }
+        setState(c);
+        return free;
+    }
+}
+
+public class AbstractQueuedSynchronizer{
+    public final boolean release(int arg) {//<1>
+        if (tryRelease(arg)) {//<2>
+            Node h = head;
+            if (h != null && h.waitStatus != 0)
+                unparkSuccessor(h);//<3>
+            return true;
+        }
+        return false;
+    }
+
+    private void unparkSuccessor(Node node) {
+        /*
+         * If status is negative (i.e., possibly needing signal) try
+         * to clear in anticipation of signalling.  It is OK if this
+         * fails or if status is changed by waiting thread.
+         */
+        int ws = node.waitStatus;
+        if (ws < 0)
+            compareAndSetWaitStatus(node, ws, 0);
+
+        /*
+         * Thread to unpark is held in successor, which is normally
+         * just the next node.  But if cancelled or apparently null,
+         * traverse backwards from tail to find the actual
+         * non-cancelled successor.
+         */
+        Node s = node.next;
+        if (s == null || s.waitStatus > 0) {
+            s = null;
+            for (Node t = tail; t != null && t != node; t = t.prev)
+                if (t.waitStatus <= 0)
+                    s = t;
+        }
+        if (s != null)
+            LockSupport.unpark(s.thread);//<4>
+    }
+}
+----

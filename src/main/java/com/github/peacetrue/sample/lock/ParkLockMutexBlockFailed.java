@@ -1,5 +1,7 @@
 package com.github.peacetrue.sample.lock;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 处理阻塞不住
  *

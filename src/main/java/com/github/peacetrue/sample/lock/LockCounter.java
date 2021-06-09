@@ -21,6 +21,7 @@ public class LockCounter extends CounterAdapter {
 
     @Override
     public void increase(int loopCount) {
+        //写入时，施加写锁
         customLock.lock();
         super.increase(loopCount);
         customLock.unlock();

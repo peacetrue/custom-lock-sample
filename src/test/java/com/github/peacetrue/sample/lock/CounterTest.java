@@ -3,7 +3,6 @@ package com.github.peacetrue.sample.lock;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
@@ -87,7 +86,7 @@ class CounterTest {
     //end::atomicLock[]
 
     //tag::atomicLockInSlowCase[]
-    @Test
+    @RepeatedTest(1)
     @Timeout(10)
     void atomicLockInSlowCase() throws Exception {
         //此测试过程中会导致 CPU 利用率达到 100%
@@ -120,7 +119,7 @@ class CounterTest {
     //end::parkLockMutexBlockFailed[]
 
     //tag::parkLockMutexBlockFailedInSlowCase[]
-    @Test
+    @RepeatedTest(1)
     @Timeout(100)
     void parkLockMutexBlockFailedInSlowCase() throws Exception {
         //此测试结果正常通过
@@ -139,7 +138,7 @@ class CounterTest {
 
     //tag::parkLockNotMutexInSlowCase[]
     @Timeout(100)
-    @Test
+    @RepeatedTest(1)
     void parkLockNotMutexInSlowCase() throws Exception {
         testCustomLock(new LockCounter(new SlowCounter(new CounterImpl(), 100), new ParkLockNotMutex()));
     }
@@ -208,7 +207,7 @@ class CounterTest {
     //end::parkLockInInterruptWaiterCase[]
 
     //tag::parkLockClearInterrupted[]
-    @Test
+    @RepeatedTest(1)
     @Timeout(7)
     void parkLockClearInterrupted() throws Exception {
         interruptWaiter(new ParkLockClearInterrupted());
@@ -216,7 +215,7 @@ class CounterTest {
     //end::parkLockClearInterrupted[]
 
     //tag::parkLockInterruptibly[]
-    @Test
+    @RepeatedTest(1)
     @Timeout(7)
     void parkLockInterruptibly() throws Exception {
         interruptWaiter(new ParkLockInterruptibly());

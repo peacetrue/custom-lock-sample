@@ -1,17 +1,20 @@
 package com.github.peacetrue.sample.lock;
 
-import lombok.AllArgsConstructor;
-
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 
 /**
  * @author : xiayx
  * @since : 2021-06-01 19:28
  **/
-@AllArgsConstructor
+//tag::class[]
 public class LockAdapter implements CustomLock {
 
     private final Lock lock;
+
+    public LockAdapter(Lock lock) {
+        this.lock = Objects.requireNonNull(lock);
+    }
 
     @Override
     public void lock() {
@@ -23,3 +26,4 @@ public class LockAdapter implements CustomLock {
         lock.unlock();
     }
 }
+//end::class[]

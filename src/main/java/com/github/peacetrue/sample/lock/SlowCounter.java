@@ -20,7 +20,12 @@ public class SlowCounter extends CounterAdapter {
 
     @Override
     public void increase(int loopCount) {
+        sleep(millis);
         super.increase(loopCount);
+    }
+
+    protected void sleep(long millis) {
+        if (millis < 0) return;
         try {
             //等待一段时间，让其他线程疯狂抢锁
             Thread.sleep(millis);
