@@ -5,23 +5,23 @@
 有一个计数器可以循环递增数值：
 
 .Counter
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/Counter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/Counter.java[tag=class]
 ----
 
 .CounterImpl
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/CounterImpl.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/CounterImpl.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;concurrentProblem;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;concurrentProblem;class-end;]
 ----
 
 测试结果如下：

@@ -5,17 +5,17 @@
 实现代码如下：
 
 .ParkLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLock.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ParkLock.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLock;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLock;class-end;]
 ----
 
 测试结果如下：
@@ -33,17 +33,17 @@ image::image-2021-06-04-05-52-06-188.png[]
 实现代码如下：
 
 .ParkLockMutex
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockMutex.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ParkLockMutex.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockMutex;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockMutex;class-end;]
 ----
 
 测试结果如下：
@@ -65,17 +65,17 @@ image::image-2021-06-04-06-51-49-534.png[]
 实现代码如下：
 
 .ParkLockMutexBlockFailed
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockMutexBlockFailed.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ParkLockMutexBlockFailed.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockMutexBlockFailed;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockMutexBlockFailed;class-end;]
 ----
 
 测试结果如下：
@@ -91,17 +91,17 @@ image::image-2021-06-04-22-57-53-466.png[]
 实现代码如下：
 
 .parkLockNotMutex
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockNotMutex.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ParkLockNotMutex.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockNotMutex;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockNotMutex;class-end;]
 ----
 
 测试结果如下：

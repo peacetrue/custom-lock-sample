@@ -3,9 +3,11 @@ title: 手动实现锁
 version: master
 asciidoc:
   attributes:
+    sectnums: all
+    sectnumlevels: 5
     numbered: ''
-    sourcedir: ../../../../../src/main/java
-    testsourcedir: ../../../../../src/test/java
+    sourcedir: 'src/main/java'
+    testsourcedir: 'src/test/java'
 start_page: ROOT:index.adoc
 nav:
   - modules/ROOT/nav.adoc

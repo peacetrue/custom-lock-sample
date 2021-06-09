@@ -1,39 +1,46 @@
 = 锁
 
-如何解决 xref:concurrent-problem.adoc[] 呢？那就是锁。锁用于保证同一时刻只有一个线程能执行特定的代码块。
+如何解决 xref:concurrent-problem.adoc[ 并发带来的问题] 呢？那就是锁。锁用于保证同一时刻只有一个线程能执行特定的代码块。
 
 对锁来说，具有两个最基础的方法：
 
 . lock：加锁
 . unlock：解锁
 
-接口如下：
+实现代码如下：
 
 .CustomLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/CustomLock.java[tags=class-start;lock;unlock;class-end]
-----
-
-测试代码如下（尚缺一个锁实现）：
-
-.CounterTest
-[source%nowrap,java]
-----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;testCustomLock;class-end;]
-----
-
-.LockCounter
-[source%nowrap,java]
-----
-include::{sourcedir}/com/github/peacetrue/sample/lock/LockCounter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/CustomLock.java[tags=class-start;lock;unlock;class-end]
 ----
 
 .CounterAdapter
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/CounterAdapter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/CounterAdapter.java[tag=class]
 ----
 
+.LockCounter
+[source,java]
+----
+include::example${sourcedir}/com/github/peacetrue/sample/lock/LockCounter.java[tag=class]
+----
 
+.LockAdapter
+[source,java]
+----
+include::example${sourcedir}/com/github/peacetrue/sample/lock/LockAdapter.java[tag=class]
+----
 
+测试代码如下：
+
+.CounterTest
+[source,java]
+----
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;testCustomLock;reentrantLock;class-end;]
+----
+
+测试结果如下：
+
+image::image-2021-06-09-18-00-54-873.png[]

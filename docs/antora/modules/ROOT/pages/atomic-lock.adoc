@@ -5,17 +5,17 @@
 实现代码如下：
 
 .AtomicLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/AtomicLock.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/AtomicLock.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;testCustomLock;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;testCustomLock;class-end;]
 ----
 
 测试结果如下：
@@ -29,15 +29,15 @@ image::image-2021-06-04-06-05-22-736.png[]
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;atomicLockInSlowCase;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;atomicLockInSlowCase;class-end;]
 ----
 
 .SlowCounter
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/SlowCounter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/SlowCounter.java[tag=class]
 ----
 
 测试中发现：16 核心利用率全部达到 100%：

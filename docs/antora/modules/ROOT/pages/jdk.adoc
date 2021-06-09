@@ -5,7 +5,7 @@
 当且仅当队首线程获得锁后，会执行出栈操作：`p == head && tryAcquire(arg)`。
 
 .加锁流程
-[source%nowrap,java]
+[source,java]
 ----
 public class ReentrantLock {
     public void lock() {
@@ -114,7 +114,7 @@ public class AbstractQueuedSynchronizer {
 ----
 
 .解锁流程
-[source%nowrap,java]
+[source,java]
 ----
 public class ReentrantLock {
     public void unlock() {

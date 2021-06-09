@@ -5,9 +5,9 @@
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;interruptWaiter;parkLockInInterruptWaiterCase;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;interruptWaiter;parkLockInInterruptWaiterCase;class-end;]
 ----
 
 测试结果如下：
@@ -23,9 +23,9 @@ image::image-2021-06-06-11-17-05-861.png[]
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/LockSupportTest.java[tag=class]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/LockSupportTest.java[tag=class]
 ----
 
 测试结果如下：
@@ -41,17 +41,17 @@ image::image-2021-06-06-10-25-35-317.png[]
 实现代码如下：
 
 .ParkLockClearInterrupted
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockClearInterrupted.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ParkLockClearInterrupted.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockClearInterrupted;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockClearInterrupted;class-end;]
 ----
 
 测试结果如下：
@@ -65,17 +65,17 @@ image::image-2021-06-06-12-08-19-836.png[]
 实现代码如下：
 
 .ParkLockInterruptibly
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ParkLockInterruptibly.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ParkLockInterruptibly.java[tag=class]
 ----
 
 测试代码如下：
 
 .CounterTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockInterruptibly;class-end]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CounterTest.java[tags=class-start;parkLockInterruptibly;class-end]
 ----
 
 测试结果如下：

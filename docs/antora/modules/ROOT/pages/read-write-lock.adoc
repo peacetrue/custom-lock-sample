@@ -9,29 +9,29 @@
 实现代码如下：
 
 .CustomReadWriteLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLock.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLock.java[tag=class]
 ----
 
 .ReadWriteLockAdapter
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ReadWriteLockAdapter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ReadWriteLockAdapter.java[tag=class]
 ----
 
 .ReadWriteLockCounter
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ReadWriteLockCounter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ReadWriteLockCounter.java[tag=class]
 ----
 
 测试代码如下：
 
 .CustomReadWriteLockTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLockTest.java[tags=class-start;testReadWriteLock;reentrantReadWriteLock;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLockTest.java[tags=class-start;testReadWriteLock;reentrantReadWriteLock;class-end;]
 ----
 
 测试结果如下：
@@ -45,17 +45,17 @@ image::image-2021-06-07-19-36-50-206.png[]
 实现代码如下：
 
 .ReadWriteSlowCounter
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ReadWriteSlowCounter.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ReadWriteSlowCounter.java[tag=class]
 ----
 
 测试代码如下：
 
 .CustomReadWriteLockTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLockTest.java[tags=class-start;reentrantReadWriteLockInSlowCase;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLockTest.java[tags=class-start;reentrantReadWriteLockInSlowCase;class-end;]
 ----
 
 测试结果如下：
@@ -71,29 +71,29 @@ image::image-2021-06-07-19-30-51-104.png[]
 实现代码如下：
 
 .AbstractReadWriteLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/AbstractReadWriteLock.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/AbstractReadWriteLock.java[tag=class]
 ----
 
 .ReadLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/ReadLock.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/ReadLock.java[tag=class]
 ----
 
 .WriteLock
-[source%nowrap,java]
+[source,java]
 ----
-include::{sourcedir}/com/github/peacetrue/sample/lock/WriteLock.java[tag=class]
+include::example${sourcedir}/com/github/peacetrue/sample/lock/WriteLock.java[tag=class]
 ----
 
 测试代码如下：
 
 .CustomReadWriteLockTest
-[source%nowrap,java]
+[source,java]
 ----
-include::{testsourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLockTest.java[tags=class-start;customReadWriteLockImpl;customReadWriteLockImplInSlowCase;class-end;]
+include::example${testsourcedir}/com/github/peacetrue/sample/lock/CustomReadWriteLockTest.java[tags=class-start;customReadWriteLockImpl;customReadWriteLockImplInSlowCase;class-end;]
 ----
 
 测试结果如下：
